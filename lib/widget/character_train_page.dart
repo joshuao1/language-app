@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:language_app/model/character_model.dart';
@@ -17,6 +19,8 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
   final _controller = TextEditingController();
   List<Character>? _characterList;
   int index = 0;
+  Color boxColor = Colors.white;
+  String answer = '';
 
   late FocusNode inputFocusNode;
 
@@ -38,14 +42,31 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
     print("Expected Answer ${_characterList![index].translation}");
     if (_characterList![index].translation == _controller.value.text) {
       setState(() {
+        boxColor = Colors.green;
         index += 1;
+        answer = '';
         if (index >= _characterList!.length) {
           index = 0;
         }
       });
-      _controller.clear();
-      inputFocusNode.requestFocus();
+      Timer(const Duration(milliseconds: 700), () {
+        setState(() {
+          boxColor = Colors.white;
+        });
+      });
+    } else {
+      setState(() {
+        boxColor = Colors.red;
+        answer = _characterList![index].translation;
+      });
+      Timer(const Duration(milliseconds: 700), () {
+        setState(() {
+          boxColor = Colors.white;
+        });
+      });
     }
+    _controller.clear();
+    inputFocusNode.requestFocus();
   }
 
   @override
@@ -61,7 +82,9 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
       appBar: AppBar(title: Text("Character Trainer")),
       body: SafeArea(
         child: StyledContainer(
+          color: boxColor,
           child: Column(
+            spacing: 20,
             children: [
               Text(
                 _characterList![index].character,
@@ -78,6 +101,8 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
                 autofocus: true,
                 focusNode: inputFocusNode,
               ),
+              if (answer.isNotEmpty) Text(answer),
+
               ElevatedButton.icon(
                 onPressed: () => checkAnswer(),
                 label: Text("Next"),
