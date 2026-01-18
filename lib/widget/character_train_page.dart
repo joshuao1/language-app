@@ -1,13 +1,14 @@
 import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:language_app/data/character_data.dart';
 import 'package:language_app/model/character_model.dart';
 import 'package:language_app/model/character_session.dart';
+import 'package:language_app/model/history_model.dart';
+import 'package:language_app/notifier/history_notifier.dart';
 import 'package:language_app/widget/results_page.dart';
 import 'package:language_app/widget/styled_container.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:provider/provider.dart';
 
 class CharacterTrainerPage extends StatefulWidget {
   final List<Character> characterList;
@@ -26,6 +27,8 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
   Set errors = {};
   final stopwatch = Stopwatch();
   final player = AudioPlayer();
+  List<History> historyList = [];
+  HistoryNotifier? historyNotifier;
 
   late FocusNode inputFocusNode;
 
@@ -34,7 +37,6 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
     super.initState();
     widget.characterList.shuffle();
     stopwatch.start();
-    print('stopwatch start');
     inputFocusNode = FocusNode();
   }
 
@@ -46,16 +48,29 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
     super.dispose();
   }
 
+  Future<void> saveHistory() async {
+    for (var item in historyList) {
+      historyNotifier!.addHistory(item);
+    }
+  }
+
   Future<void> checkAnswer() async {
     Character character = widget.characterList[index];
-    print("Expected Answer ${character.translation}");
     if (character.translation == _controller.value.text) {
       await player.play(AssetSource(character.audio));
       setState(() {
+        historyList.add(
+          History(
+            characterFk: character.id!,
+            date: DateTime.now(),
+            correct: true,
+          ),
+        );
         boxColor = Colors.green;
         index += 1;
         answer = '';
         if (index >= widget.characterList.length) {
+          saveHistory();
           index = 0;
           stopwatch.stop();
           Navigator.push(
@@ -73,35 +88,32 @@ class _CharacterTrainerPageState extends State<CharacterTrainerPage> {
           );
         }
       });
-      Timer(const Duration(milliseconds: 700), () {
-        setState(() {
-          boxColor = Colors.white;
-        });
-      });
     } else {
       setState(() {
+        historyList.add(
+          History(
+            characterFk: character.id!,
+            date: DateTime.now(),
+            correct: false,
+          ),
+        );
         boxColor = Colors.red;
         answer = character.translation;
         errors.add(character.id);
-        print('errors added to set');
-        print(errors);
-      });
-      Timer(const Duration(milliseconds: 700), () {
-        setState(() {
-          boxColor = Colors.white;
-        });
       });
     }
+    Timer(const Duration(milliseconds: 700), () {
+      setState(() {
+        boxColor = Colors.white;
+      });
+    });
     _controller.clear();
     inputFocusNode.requestFocus();
   }
 
   @override
   Widget build(BuildContext context) {
-    // if (characterNotifier.isLoading) {
-    //   return Center(child: CircularProgressIndicator());
-    // }
-
+    historyNotifier = context.watch<HistoryNotifier>();
     return Scaffold(
       appBar: AppBar(title: Text("Character Trainer")),
       body: SafeArea(

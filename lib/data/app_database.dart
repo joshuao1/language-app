@@ -11,6 +11,15 @@ character_group TEXT NOT NULL,
 audio TEXT NOT NULL
 );''';
 
+final historySchema = '''
+CREATE TABLE history (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+character_fk INTEGER NOT NULL,
+date INTEGER NOT NULL,
+correct BOOL NOT NULL
+);
+''';
+
 final class AppDatabase {
   // singleton pattern
   static final AppDatabase instance = AppDatabase._();
@@ -36,6 +45,7 @@ final class AppDatabase {
 
   Future<void> _onCreate(Database db, int verion) async {
     await db.execute(characterSchema);
+    await db.execute(historySchema);
     for (var char in characterList) {
       await db.insert('characters', char);
     }
