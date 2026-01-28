@@ -6,7 +6,8 @@ A new Flutter project.
 [X] Save character sessions to memory
 [X] play sounds on the character list screen
 [X] Display success rate for each character - all time
-[] Select character (groups) for training session
+[X] Select character (groups) for training session
+[] Select characters defaults to none, validation before starting
 [] Spaced repetition training 
 [] Display recent mistakes
 [] Make recent mistakes available for training

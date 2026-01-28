@@ -13,87 +13,128 @@ class CharacterSelectPage extends StatefulWidget {
 
 class _CharacterSelectPageState extends State<CharacterSelectPage> {
   CharacterNotifier? characterNotifier;
-  var characterGroups = [
-    {'a': true},
-    {'ka': true},
-    {'sa': true},
-    {'ta': true},
-    {'na': true},
-    {'ha': true},
-    {'ma': true},
-    {'ya': true},
-    {'ra': true},
-    {'wa': true},
-    {'ga': true},
-    {'za': true},
-    {'da': true},
-    {'ba': true},
-    {'pa': true},
-    {'kya': true},
-    {'sha': true},
-    {'cha': true},
-    {'nya': true},
-    {'hya': true},
-    {'mya': true},
-    {'rya': true},
-    {'gya': true},
-    {'ja': true},
-    {'bya': true},
-    {'pya': true},
-  ];
-  late var selectedChars = characterGroups;
+  final Map<String, bool> characterGroups = {
+    'a': false,
+    'ka': false,
+    'sa': false,
+    'ta': false,
+    'na': false,
+    'ha': false,
+    'ma': false,
+    'ya': false,
+    'ra': false,
+    'wa': false,
+    'ga': false,
+    'za': false,
+    'da': false,
+    'ba': false,
+    'pa': false,
+    'kya': false,
+    'sha': false,
+    'cha': false,
+    'nya': false,
+    'hya': false,
+    'mya': false,
+    'rya': false,
+    'gya': false,
+    'ja': false,
+    'bya': false,
+    'pya': false,
+  };
+
+  List<String> get selectedGroups =>
+      characterGroups.entries.where((e) => e.value).map((e) => e.key).toList();
+
+  bool get allSelected =>
+      characterGroups.values.every((isSelected) => isSelected);
+
+  void toggleSelectAll() {
+    setState(() {
+      final newValue = !allSelected;
+      characterGroups.updateAll((_, _) => newValue);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     characterNotifier = context.watch<CharacterNotifier>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Select Characters')),
+      appBar: AppBar(
+        title: const Text('Select Characters'),
+        actions: [
+          TextButton(
+            onPressed: toggleSelectAll,
+            child: Text(
+              allSelected ? 'Clear all' : 'Select all',
+              // style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
-        child: ListView.builder(
-          itemCount: characterGroups.length,
-          itemBuilder: (context, index) {
-            final entry = characterGroups[index].entries;
-            // var selectedChars = characterGroups
-            //     .where((group) => group.values.first)
-            //     .map((group) => group.keys.first)
-            //     .toList();
-            // print(selectedChars);
-
+        child: ListView(
+          children: characterGroups.entries.map((entry) {
             return CheckboxListTile(
-              title: Text(entry.first.key),
+              title: Text(entry.key),
+              value: entry.value,
               activeColor: Colors.blue,
-              value: entry.first.value,
-              onChanged: (bool? newValue) {
+              onChanged: (checked) {
                 setState(() {
-                  characterGroups[index] = {entry.first.key: newValue!};
+                  characterGroups[entry.key] = checked!;
                 });
               },
             );
-          },
+          }).toList(),
         ),
+
+        // ListView.builder(
+        //   itemCount: characterGroups.length,
+        //   itemBuilder: (context, index) {
+        //     final entry = characterGroups[index].entries;
+        //     // var selectedChars = characterGroups
+        //     //     .where((group) => group.values.first)
+        //     //     .map((group) => group.keys.first)
+        //     //     .toList();
+        //     // print(selectedChars);
+
+        //     return CheckboxListTile(
+        //       title: Text(entry.first.key),
+        //       activeColor: Colors.blue,
+        //       value: entry.first.value,
+        //       onChanged: (bool? newValue) {
+        //         setState(() {
+        //           characterGroups[index] = {entry.first.key: newValue!};
+        //         });
+        //       },
+        //     );
+        //   },
+        // ),
       ),
       bottomNavigationBar: Container(
         padding: EdgeInsets.fromLTRB(0, 0, 0, 0),
         child: ElevatedButton.icon(
           style: ElevatedButton.styleFrom(padding: EdgeInsets.all(20)),
-          onPressed: () => Navigator.push(
-            context,
-            CupertinoPageRoute(
-              builder: (context) => CharacterTrainerPage(
-                characterList: characterNotifier!.characters
-                    // Provide list of characters that have been selected in the groups check list
-                    .where(
-                      (char) => characterGroups
-                          .where((group) => group.values.first)
-                          .map((group) => group.keys.first)
-                          .toList()
-                          .contains(char.characterGroup),
-                    )
-                    .toList(),
-              ),
-            ),
+          onPressed: selectedGroups.isEmpty
+              ? null
+              : () => Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => CharacterTrainerPage(
+                      characterList: characterNotifier!.characters
+                          // Provide list of characters that have been selected in the groups check list
+                          .where(
+                            (char) =>
+                                selectedGroups.contains(char.characterGroup),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
+          label: Text(
+            selectedGroups.isEmpty ? "Select a group" : "Start Training",
+            style: TextStyle(fontSize: 16),
           ),
-          label: Text("Start Training", style: TextStyle(fontSize: 16)),
         ),
       ),
     );
