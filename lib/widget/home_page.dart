@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:language_app/notifier/character_trainer_notifier.dart';
 import 'package:language_app/notifier/history_notifier.dart';
 import 'package:language_app/widget/character_list_page.dart';
 import 'package:language_app/widget/character_select_page.dart';
@@ -67,13 +68,23 @@ class HomePage extends StatelessWidget {
                 onPressed: () => Navigator.push(
                   context,
                   CupertinoPageRoute(
-                    builder: (context) => CharacterTrainerPage(
-                      characterList: characterNotifier.characters
-                          .where(
-                            (char) =>
-                                selectedGroups.contains(char.characterGroup),
-                          )
-                          .toList(),
+                    builder: (context) => ChangeNotifierProvider(
+                      create: (context) => CharacterTrainerNotifier(
+                        characters: characterNotifier.characters
+                            .where(
+                              (char) =>
+                                  selectedGroups.contains(char.characterGroup),
+                            )
+                            .toList(),
+                      ),
+                      child: CharacterTrainerPage(
+                        characterList: characterNotifier.characters
+                            .where(
+                              (char) =>
+                                  selectedGroups.contains(char.characterGroup),
+                            )
+                            .toList(),
+                      ),
                     ),
                   ),
                 ),
@@ -94,17 +105,31 @@ class HomePage extends StatelessWidget {
                     : Navigator.push(
                         context,
                         CupertinoPageRoute(
-                          builder: (context) => CharacterTrainerPage(
-                            characterList: characterNotifier.characters
-                                .where(
-                                  (char) => characterErrors
-                                      .map((elem) => elem.characterFk)
-                                      .toSet()
-                                      .toList()
-                                      .take(10)
-                                      .contains(char.id),
-                                )
-                                .toList(),
+                          builder: (context) => ChangeNotifierProvider(
+                            create: (context) => CharacterTrainerNotifier(
+                              characters: characterNotifier.characters
+                                  .where(
+                                    (char) => characterErrors
+                                        .map((elem) => elem.characterFk)
+                                        .toSet()
+                                        .toList()
+                                        .take(10)
+                                        .contains(char.id),
+                                  )
+                                  .toList(),
+                            ),
+                            child: CharacterTrainerPage(
+                              characterList: characterNotifier.characters
+                                  .where(
+                                    (char) => characterErrors
+                                        .map((elem) => elem.characterFk)
+                                        .toSet()
+                                        .toList()
+                                        .take(10)
+                                        .contains(char.id),
+                                  )
+                                  .toList(),
+                            ),
                           ),
                         ),
                       ),
